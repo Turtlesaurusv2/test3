@@ -10,8 +10,8 @@
 
     table {
         margin: auto;
-        width: 70%;
-        height: 70%;
+        width: 100%;
+        height: 100%;
     }
 
     .butt {
@@ -33,6 +33,12 @@
         border: 1px solid;
     }
 
+    .sf {
+        text-align: left;
+        padding: 8px;
+        width: 300px;
+    }
+
 
     tr:nth-child(even) {
         background-color: white;
@@ -52,6 +58,11 @@
     <?php 
 include('db_conn.php');
 
+$company_id = $_GET["company_id"];
+
+
+
+
 ?>
 </head>
 
@@ -68,27 +79,34 @@ include('db_conn.php');
         </div>
     </div>
 
-    <br>
-    </br>
-    <div class="w3-container">
+    <div class="container" style="width:700px;">
+
 
         <br>
+        <a href="report.php">รายงาน</a>
+        </br>
+        <div class="w3-container">
 
-        <table style="padding-top:10px">
-            <thead>
-                <tr>
-                    <th>รหัสรอบหลัก</th>
-                    <th>ชื่อรอบหลัก</th>
-                    <th>วันที่สร้าง</th>
-                    <th>ดูรอบนับ</th>
-                </tr>
-                </thesd>
-            <tbody id="result"></tbody>
-        </table>
+            <br>
 
-        <tbody colspan="5" id="invoiceBody"> </tbody>
+            <table style="padding-top:10px">
+                <thead>
+                    <tr>
+                        <th>รหัสรอบหลัก</th>
+                        <th>ชื่อรอบหลัก</th>
+                        <th>รหัสcompany</th>
+                        <th>วันที่สร้าง</th>
+                        <th>ดูรอบนับ</th>
+                    </tr>
+                    </thesd>
+                <tbody id="result"></tbody>
+            </table>
+            <br>
 
-    </div>
+            <tbody colspan="5" id="invoiceBody"> </tbody>
+
+
+        </div>
 
 
 </body>
@@ -107,9 +125,12 @@ include('db_conn.php');
                     <label>ชื่อรอบหลัก</label>
                     <input type="text" name="name" id="name" class="form-control" />
                     <br />
+                    <br />
+                    <input type="text" name="company_id" id="company_id" value="<?php echo $company_id; ?>" disabled='disabled' />
+                    <input type="hidden" name="company_id" id="company_id" value="<?php echo $company_id; ?>" />
+                    <br>
                     <input onclick="send();" type="submit" name="send" id="send" value="เพิ่มข้อมูล"
                         class="btn btn-success" />
-
                 </div>
             </div>
             <div class="modal-footer">
@@ -128,11 +149,13 @@ function send() {
 
     //ประกาศตัวแปร
     var name = $("#name").val();
+    var company_id = $("#company_id").val();
+
 
     var temp = {};
     temp["name"] = name;
-
-
+    temp["company_id"] = company_id;
+    //com id = 1-9 select option ดึงไอดี หัก กับ compid  ไปด้วย;
 
     //ประกาศตัวแปรjsonเพื่อเก็บข้อมูลจากtemp
     var json = JSON.stringify(temp);
@@ -152,7 +175,6 @@ function send() {
                 alert(response.message);
 
             }
-
             location.reload();
         }
 
@@ -164,11 +186,13 @@ function send_sub() {
     //ประกาศตัวแปร
     var sub_name = $("#sub_name").val();
     var inv_id = $("#inv_id").val();
+    var company_id = $("#company_id").val();
 
 
     var temp = {};
     temp["sub_name"] = sub_name;
     temp["inv_id"] = inv_id;
+    temp["company_id"] = company_id;
 
 
 
@@ -204,12 +228,14 @@ $(document).ready(function() {
 
     load_data();
 
-    function load_data(query = "", page = 1) {
+    function load_data(query = "") {
+
+        var company_id = $("#company_id").val();
 
         //ประกาศตัวแปร object 
         var data = {};
         data["query"] = query;
-        data["page"] = page;
+        data["company_id"] = company_id
         //ประกาศตัวแปรjson ช
         var query = JSON.stringify(data);
 
@@ -231,18 +257,18 @@ $(document).ready(function() {
                     html += "<tr>" +
                         "<td>" + ele.inv_id + "</td>" +
                         "<td>" + ele.name + "</td>" +
+                        "<td>" + ele.company_id + "</td>" +
                         "<td>" + ele.create_dt + "</td>" +
                         "<td ><button onclick='load(" + ele.inv_id +
                         ");' type='button' class='butt'  name='butsave' id='show' >" +
                         "<i class='fas fa-plus'></i></button>" +
                         "</td>" +
                         "</tr>" +
-                        "<tr class='ss' colspan='5' id='invoiceBody" + ele.inv_id +
-                        "' style='display:none' bgcolor='#FFFF99'>" +
-                        "<th colspan='5' id ='invoiceBody" + ele.inv_id +
-                        "' bgcolor='#FFFF99'>" +
-                        "</th>" +
-                        "</tr>";
+                        "<br>" +
+                        "<tr class='ss' colspan ='5'  id='invoiceBody" + ele.inv_id +
+                        "' style='display:none' >" +
+                        "</tr>" +
+                        "<tr>";
                 });
 
                 $("#result").html(html);
@@ -261,6 +287,8 @@ $(document).ready(function() {
 //รับค่ามาจาก getinv เมื่อกดปุ่มมันจะแสดงข้อมูลตัวลูก
 function load(id) {
 
+    var company_id = $("#company_id").val();
+
     var x = document.getElementById("invoiceBody" + id);
 
     // ajax
@@ -274,7 +302,8 @@ function load(id) {
 
             //ประกาศตัวแปรเพื่อดเอาข้อมลที่ส่งมา มาใช้งาน
             var rsp = data.res;
-            var resu = data.resu;
+            var res = data.res;
+            console.log(res);
 
             if (x.style.display == "none") {
 
@@ -284,15 +313,15 @@ function load(id) {
 
                 if (rsp == "") {
                     console.log(rsp);
-//แสดงส่วนsubถ้าไม่มีข้อมูล
+                    //แสดงส่วนsubถ้าไม่มีข้อมูล
                     html =
-                    //ปุ่มเพิ่มรอบนับ
+                        //ปุ่มเพิ่มรอบนับ
                         `
                 <div>
                 <button type="button" name="age" id="ag2" data-toggle="modal" data-target="#add_data_Modal2">เพิ่มรอบนับ</button>
                 <br>
                 ไม่มีข้อมูล` +
-//แบบฟอร์มสร้างรอบนับ ดึงidจากรอบใหญ่แล้วบันทึกเข้าไปในรอบนับ
+                        //แบบฟอร์มสร้างรอบนับ ดึงidจากรอบใหญ่แล้วบันทึกเข้าไปในรอบนับ
                         `<div id="add_data_Modal2" class="modal fade">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -307,6 +336,11 @@ function load(id) {
 
                     <input class="w3-input w3-border" type="hidden" name="inv_id" id="inv_id" value="` + id + `" disabled='disabled' />
                     <input type="hidden" name="inv_id" id="inv_id" value="` + id + `" />
+
+                    
+                    <input class="w3-input w3-border" type="hidden" name="company_id" id="company_id" value="` + company_id + `" disabled='disabled' />
+                    <input type="hidden" name="company_id" id="company_id" value="` + company_id + `" />
+
                     <input onclick="send_sub();" type="submit" name="send_sub" id="send_sub" value="เพิ่มข้อมูล"
                         class="btn btn-success" />
 
@@ -317,16 +351,16 @@ function load(id) {
             </div>
         </div>
     </div>
-</div>` 
+</div>`
 
                 } else {
-//แสดงส่วนsubถ้ามีข้อมูล
+                    //แสดงส่วนsubถ้ามีข้อมูล
                     html =
-                    `
+                        `
                 <div>
                 <button type="button" name="age" id="ag2" data-toggle="modal" data-target="#add_data_Modal2">เพิ่มรอบนับ</button>
                 <br>` +
-//แบบฟอร์มสร้างรอบนับ ดึงidจากรอบใหญ่แล้วบันทึกเข้าไปในรอบนับ
+                        //แบบฟอร์มสร้างรอบนับ ดึงidจากรอบใหญ่แล้วบันทึกเข้าไปในรอบนับ
                         `<div id="add_data_Modal2" class="modal fade">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -338,9 +372,10 @@ function load(id) {
                 <div method="post">
                     <label>ชื่อรอบนับ</label>
                     <input type="text" name="sub_name" id="sub_name" class="form-control" />
-
                     <input class="w3-input w3-border" type="hidden" name="inv_id" id="inv_id" value="` + id + `" disabled='disabled' />
                     <input type="hidden" name="inv_id" id="inv_id" value="` + id + `" />
+                    <input class="w3-input w3-border" type="hidden" name="company_id" id="company_id" value="` + company_id + `" disabled='disabled' />
+                    <input type="hidden" name="company_id" id="company_id" value="` + company_id + `" />
                     <input onclick="send_sub();" type="submit" name="send_sub" id="send_sub" value="เพิ่มข้อมูล"
                         class="btn btn-success" />
 
@@ -351,40 +386,32 @@ function load(id) {
             </div>
         </div>
     </div>
-</div>` +
-//หัวตารางที่จะเอาลูปมาใส่
-`<div class="w3-container">
-<br>
-<table style="padding-top:10px">
-    <thead>
-        <tr>
-            <th>รหัสรอบนับ</th>
-            <th>ชื่อรอบนับ</th>
-            <th>วันที่สร้าง</th>
-        </tr>
-        </thesd>
-    <tbody id="resu"></tbody>
-</table>
+</div>`;
+                    //หัวตารางที่จะเอาลูปมาใส่/*
 
 
-</div>`
                     rsp.forEach(ele => {
-//ลูปเอาข้อมูลไปใส่ในตารางโดยมีไอดี resu
-                        html +=  
-                        `<tr>
-                           <td>` + ele.sub_id +`</td>
-                           <td>` + ele.sub_name + `</td>
-                           <td>` + ele.create_dt + `</td>
-                        </tr>`
-                       
+                        //ลูปเอาข้อมูลไปใส่ในตารางโดยมีไอดี resu
+                        html +=
+                            `<br>` +
+                            `<tr >
+                           <td class="sf">` + ele.sub_id + `</td>
+                           <td class="sf">` + ele.sub_name + `</td>
+                           <td class="sf">` + ele.company_id + `</td>
+                           <td class="sf">` + ele.create_dt + `</td>
+                           <td class="sf"><button onclick='load_sub(` + ele.sub_id + `);
+                           ' type='button' class='butt'  name='butsave' id='show' >จัดการ
+                           </button></td>
+                           </tr>`
 
- 
+
+
 
                     });
                 }
 
                 $("#invoiceBody" + id).html(html)
-                $("#resu").html(html);
+                $("#rsp").html(html);
 
 
             } else {
@@ -397,5 +424,16 @@ function load(id) {
     });
 
 }
+//redirectไปที่ subpage พร้อม id
+function load_sub(id) {
 
+    var company_id = $("#company_id").val();
+
+    var x = "sub_page.php?id=" + id + "&company_id=" + company_id  ;
+
+    //var x = "sup_page.php?id='+id+'";
+
+    window.location.href = x ;
+
+}
 </script>

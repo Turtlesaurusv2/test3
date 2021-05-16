@@ -4,25 +4,18 @@ include('db_conn.php');
 
 $res = [];
 
-//รับค่า Query จากหน้า test2.php 
+//รับค่า Query จากหน้า index.php 
 if(isset($_POST["id"])){
 
     $id = $_POST["id"];
 
-
     $result2 = $conn->prepare("SELECT * FROM inv_sub  WHERE  inv_id = $id LIMIT 0,10 ");
-
-
-
 
 }
 
-
 $result2->execute();
 
-
 $row = $result2->fetch(PDO::FETCH_ASSOC);
-
 $inv = $row['inv_id']?? '';
 
 
@@ -46,7 +39,4 @@ if($id = $inv) {
     exit( json_encode( $data ) );
 }
 ?>
-<script>
-console.log(inv);
-</script>
 
